@@ -1,0 +1,68 @@
+---
+// Definimos la estructura de los datos que vamos a recibir
+interface Props {
+  title: string;
+  groups: {
+    category: string;
+    skills: string[];
+  }[];
+}
+
+const { title, groups } = Astro.props;
+
+// Mapas de iconos y colores (estos no necesitan traducción, se quedan fijos)
+const iconsMap: Record<string, string> = {
+  "Machine Learning & GenAI": "🧠",
+  "Big Data & Cloud": "☁️",
+  "Lenguajes de Programación": "💻", "Programming Languages": "💻",
+  "Visualización de Datos": "📊", "Data Visualization": "📊"
+};
+
+const colorsMap: Record<string, string> = {
+  "Machine Learning & GenAI": "border-purple-500/30 bg-purple-900/10 text-purple-300",
+  "Big Data & Cloud": "border-blue-500/30 bg-blue-900/10 text-blue-300",
+  "Lenguajes de Programación": "border-emerald-500/30 bg-emerald-900/10 text-emerald-300", "Programming Languages": "border-emerald-500/30 bg-emerald-900/10 text-emerald-300",
+  "Visualización de Datos": "border-orange-500/30 bg-orange-900/10 text-orange-300", "Data Visualization": "border-orange-500/30 bg-orange-900/10 text-orange-300"
+};
+---
+
+<section class="py-20 px-4 relative">
+  <div class="max-w-6xl mx-auto">
+    
+    <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center text-white">
+      {title}
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {groups.map((group) => (
+        <div class={`
+          group relative p-6 rounded-2xl border border-slate-800 bg-[#0c0c0c] 
+          backdrop-blur-sm transition-all duration-300
+          hover:border-cyan-500/50 hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]
+          hover:-translate-y-1
+      `}>
+          <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-tr-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+          <div class="flex items-center gap-3 mb-5">
+              <span class="text-3xl filter drop-shadow-lg">{iconsMap[group.category]}</span>
+              <h3 class="text-lg font-bold text-slate-200 group-hover:text-cyan-400 transition-colors">
+                  {group.category}
+              </h3>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+              {group.skills.map((skill) => (
+                  <span class="px-3 py-1.5 text-xs font-mono rounded-md 
+                              bg-slate-900 border border-slate-800 text-slate-400
+                              group-hover:text-cyan-200 group-hover:border-cyan-500/30 group-hover:bg-cyan-950/30
+                              transition-colors">
+                      {skill}
+                  </span>
+              ))}
+          </div>
+      </div>
+      ))}
+    </div>
+
+  </div>
+</section>

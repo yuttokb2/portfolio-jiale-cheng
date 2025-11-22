@@ -1,22 +1,31 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+}
+
+const {title} = Astro.props;
+---
+
 <!doctype html>
-<html lang="en">
+
+<html lang = "en" class = "scroll-smooth">
 	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<meta charset = "utf-8" />
+		<meta name = "description" content = "Portfolio of Jiale Cheng - Senior Data Scientist" />
+		<meta name = "viewport" content = "width=device-width" />
+		<title>{title}</title>
 	</head>
-	<body>
+	<body class="bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-cyan-500/30">
+		<div class="fixed inset-0 z-[-1]">
+			<div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+			
+			<div class="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-cyan-400 opacity-20 blur-[100px]"></div>
+			
+			<div class="absolute right-0 top-0 -z-10 h-[200px] w-[200px] rounded-full bg-purple-500 opacity-20 blur-[80px]"></div>
+		</div>
+
 		<slot />
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
