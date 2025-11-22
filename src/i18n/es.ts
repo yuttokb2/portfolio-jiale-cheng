@@ -33,14 +33,14 @@ export const es = {
         current: true,
       },
       {
-        date: "2023 - 2024", 
+        date: "Presente", 
         title: "AI Teacher",
         company: "Ironhack",
         description: "Formación de la próxima generación de Data Scientists, impartiendo conocimientos sobre Inteligencia Artificial, Machine Learning y Python.",
         tags: ["Mentoring", "Education", "AI"],
       },
       {
-        date: "Sept 2023 - 2024", 
+        date: "Sept 2023 - 2025", 
         title: "Lead Data Scientist",
         company: "ThetaRay",
         description: "Liderazgo de un equipo cross-funcional de 10 profesionales. Desarrollo de modelos no supervisados para la detección de crímenes financieros (AML) para bancos globales como Santander. Mejora de tasas de detección en porcentajes de dos dígitos.",

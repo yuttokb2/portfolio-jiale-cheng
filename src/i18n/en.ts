@@ -40,7 +40,7 @@ export const en = {
         tags: ["Mentoring", "Education", "AI"],
       },
       {
-        date: "Sept 2023 - 2024", 
+        date: "Sept 2023 - 2025", 
         title: "Lead Data Scientist",
         company: "ThetaRay",
         description: "Led a cross-functional team of 10 professionals. Spearheaded the development of unsupervised ML models to detect financial crimes (AML) for global banks like Santander. Improved detection rates by double-digit percentages.",
