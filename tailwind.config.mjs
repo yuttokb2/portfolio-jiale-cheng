@@ -7,6 +7,7 @@ export default {
 				'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
 				'gradient-x': 'gradient-x 3s ease infinite',
 				'float': 'float 6s ease-in-out infinite',
+				'typing': 'typing 3.5s steps(40, end), blink .75s step-end infinite',
 			},
 			keyframes: {
 				fadeInUp: {
@@ -26,9 +27,16 @@ export default {
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-20px)' },
-				}
-			}
-		},
+				},
+				typing: {
+						'0%': { width: '0' },
+						'100%': { width: '100%' },
+					},
+				blink: {
+						'50%': { borderColor: 'transparent' },
+					},
+							}
+						},
 	},
 	plugins: [],
 }

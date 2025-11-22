@@ -2,9 +2,10 @@
 import Layout from '../../layouts/Layout.astro';
 import Experience from '../../components/Experience.astro';
 import Skills from '../../components/Skills.astro';
+import Projects from '../../components/Projects.astro';
 import { en } from '../../i18n/en'; // <--- Importamos INGLÉS
 
-const { hero, experience, skills } = en;
+const { hero, experience, skills, projects } = en;
 ---
 
 <Layout title="Jiale Cheng | Senior Data Scientist">
@@ -14,24 +15,38 @@ const { hero, experience, skills } = en;
     <span class="text-sm font-mono">ES</span>
   </a>
 
-    <main class="relative w-full min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-4">
-      
+    <main class="fade-up relative w-full min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-4">
+
       <div class="mb-8 inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 backdrop-blur-sm animate-fade-in-up">
           <span class="flex h-2 w-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
           <span class="text-cyan-300 text-xs font-mono tracking-widest uppercase">Available for new projects</span>
       </div>
 
+      <!-- Profile Image -->
+      <div class="relative group mb-8">
+          <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 rounded-full blur-md opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+          <div class="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden ring-4 ring-slate-900/50 shadow-2xl">
+              <img
+                  src="/images/profile.jpeg"
+                  alt="Jiale Cheng"
+                  class="w-full h-full object-cover object-[center_20%] grayscale hover:grayscale-0 transition-all duration-500"
+              />
+          </div>
+      </div>
+
       <div class="z-10 text-center max-w-5xl mx-auto space-y-8">
-          
+
           <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter mb-6">
               <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-blue-500 animate-gradient-x">
                   Jiale Cheng
               </span>
           </h1>
 
-          <h2 class="text-xl md:text-2xl text-cyan-400/80 font-mono tracking-widest uppercase mb-8">
-              Physicist <span class="text-slate-600">|</span> ML Engineer <span class="text-slate-600">|</span> GenAI
-          </h2>
+          <div class="h-10 mb-6 flex items-center justify-center">
+              <h2 class="typewriter-text text-cyan-400 tracking-[0.2em] text-xs md:text-sm font-mono uppercase">
+                  {hero.tagline}
+              </h2>
+          </div>
 
           <div class="relative group max-w-3xl mx-auto">
               <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
@@ -59,6 +74,8 @@ const { hero, experience, skills } = en;
   
   <Skills title={skills.title} groups={skills.groups} />
 
+  <Projects title={projects.title} projects={projects.list} />
+
   <Experience title={experience.title} jobs={experience.jobs} />
-  
+
 </Layout>
