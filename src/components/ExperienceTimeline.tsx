@@ -52,7 +52,7 @@ export default function ExperienceTimeline({ jobs }: Props) {
           whileInView="visible"
           viewport={{ once: true, amount: 0.25 }}
           variants={cardVariants}
-          style={{ position: 'relative', paddingLeft: '5rem', marginBottom: '1.5rem' }}
+          className="relative pl-12 sm:pl-20 mb-6"
         >
           {/* Timeline dot */}
           <div

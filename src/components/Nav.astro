@@ -24,7 +24,7 @@ const other = lang === 'en'
   : { href: '/en', flag: '🇬🇧', label: 'EN' };
 ---
 
-<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1117]/60 backdrop-blur-sm">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
 
@@ -54,25 +54,73 @@ const other = lang === 'en'
         </a>
       </div>
 
-      <!-- Language switcher -->
-      <a
-        href={other.href}
-        class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/70 backdrop-blur border border-slate-700/80 rounded-full text-xs font-bold font-mono hover:border-cyan-500/60 hover:text-cyan-400 transition-all shadow-sm"
-      >
-        <span>{other.flag}</span>
-        <span>{other.label}</span>
-      </a>
+      <!-- Right side: lang switcher + hamburger -->
+      <div class="flex items-center gap-3">
+        <!-- Language switcher -->
+        <a
+          href={other.href}
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/70 backdrop-blur border border-slate-700/80 rounded-full text-xs font-bold font-mono hover:border-cyan-500/60 hover:text-cyan-400 transition-all shadow-sm"
+        >
+          <span>{other.flag}</span>
+          <span>{other.label}</span>
+        </a>
 
+        <!-- Hamburger button (mobile only) -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden flex flex-col justify-center gap-[5px] w-9 h-9 p-2 rounded-lg hover:bg-slate-800/60 transition-colors"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <span id="ham-line-1" class="block w-full h-[1.5px] bg-slate-300 transition-all duration-300 origin-center"></span>
+          <span id="ham-line-2" class="block w-full h-[1.5px] bg-slate-300 transition-all duration-300"></span>
+          <span id="ham-line-3" class="block w-full h-[1.5px] bg-slate-300 transition-all duration-300 origin-center"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div
+    id="mobile-menu"
+    class="hidden md:hidden border-t border-slate-800/50 bg-[#0d1117]/96 backdrop-blur-xl"
+  >
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
+      {links.map(link => (
+        <a
+          href={`#${link.id}`}
+          class="mobile-menu-link text-slate-300 hover:text-cyan-400 text-sm font-mono py-3 px-3 rounded-lg hover:bg-slate-800/40 transition-all"
+        >
+          {link.label}
+        </a>
+      ))}
+      <a
+        href="/blog/"
+        class="mobile-menu-link text-slate-300 hover:text-cyan-400 text-sm font-mono py-3 px-3 rounded-lg hover:bg-slate-800/40 transition-all"
+      >
+        Blog
+      </a>
     </div>
   </div>
 </nav>
 
 <style>
   #main-nav.scrolled {
-    background: rgba(5, 5, 5, 0.88);
+    background: rgba(13, 17, 23, 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  #mobile-menu-btn[aria-expanded="true"] #ham-line-1 {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+  #mobile-menu-btn[aria-expanded="true"] #ham-line-2 {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  #mobile-menu-btn[aria-expanded="true"] #ham-line-3 {
+    transform: translateY(-6.5px) rotate(-45deg);
   }
 </style>
 
@@ -81,4 +129,20 @@ const other = lang === 'en'
   window.addEventListener('scroll', () => {
     nav?.classList.toggle('scrolled', window.scrollY > 40);
   }, { passive: true });
+
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+
+  btn?.addEventListener('click', () => {
+    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!isOpen));
+    menu?.classList.toggle('hidden');
+  });
+
+  document.querySelectorAll('.mobile-menu-link').forEach(link => {
+    link.addEventListener('click', () => {
+      menu?.classList.add('hidden');
+      btn?.setAttribute('aria-expanded', 'false');
+    });
+  });
 </script>

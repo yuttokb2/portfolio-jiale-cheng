@@ -26,7 +26,15 @@
   white-space: nowrap;
   border-right: 2px solid rgb(34, 211, 238);
   width: 0;
+  max-width: calc(100vw - 2rem);
   animation:
     typing 3.5s steps(40, end) forwards,
     blink-caret 0.75s step-end infinite;
+}
+
+@media (max-width: 640px) {
+  .typewriter-text {
+    letter-spacing: 0.04em;
+    font-size: 0.6rem;
+  }
 }
