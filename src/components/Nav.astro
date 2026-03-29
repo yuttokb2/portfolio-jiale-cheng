@@ -1,0 +1,84 @@
+---
+interface Props {
+  lang?: 'en' | 'es';
+}
+
+const { lang = 'en' } = Astro.props;
+
+const sections = {
+  en: [
+    { id: 'skills',     label: 'Skills'     },
+    { id: 'projects',   label: 'Projects'   },
+    { id: 'experiencia', label: 'Experience' },
+  ],
+  es: [
+    { id: 'skills',     label: 'Habilidades' },
+    { id: 'projects',   label: 'Proyectos'   },
+    { id: 'experiencia', label: 'Experiencia' },
+  ],
+};
+
+const links = sections[lang];
+const other = lang === 'en'
+  ? { href: '/es', flag: '🇪🇸', label: 'ES' }
+  : { href: '/en', flag: '🇬🇧', label: 'EN' };
+---
+
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a
+        href={lang === 'en' ? '/en' : '/es'}
+        class="text-white font-extrabold font-mono text-base tracking-tight hover:text-cyan-400 transition-colors"
+      >
+        JC<span class="text-cyan-400">.</span>
+      </a>
+
+      <!-- Desktop section links -->
+      <div class="hidden md:flex items-center gap-8">
+        {links.map(link => (
+          <a
+            href={`#${link.id}`}
+            class="text-slate-400 hover:text-white text-sm font-mono transition-colors hover:text-cyan-300"
+          >
+            {link.label}
+          </a>
+        ))}
+        <a
+          href="/blog/"
+          class="text-slate-400 hover:text-cyan-300 text-sm font-mono transition-colors"
+        >
+          Blog
+        </a>
+      </div>
+
+      <!-- Language switcher -->
+      <a
+        href={other.href}
+        class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/70 backdrop-blur border border-slate-700/80 rounded-full text-xs font-bold font-mono hover:border-cyan-500/60 hover:text-cyan-400 transition-all shadow-sm"
+      >
+        <span>{other.flag}</span>
+        <span>{other.label}</span>
+      </a>
+
+    </div>
+  </div>
+</nav>
+
+<style>
+  #main-nav.scrolled {
+    background: rgba(5, 5, 5, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+</style>
+
+<script>
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav?.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+</script>

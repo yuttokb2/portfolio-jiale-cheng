@@ -1,0 +1,141 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import { createSupabaseAdmin, createSupabaseClient, db } from '../../lib/supabase';
+
+// Check if user is authenticated (to show admin controls)
+let isAdmin = false;
+try {
+  const supabase = createSupabaseClient(Astro.request, Astro.cookies);
+  const { data: { user } } = await supabase.auth.getUser();
+  isAdmin = !!user;
+} catch {}
+
+const admin = createSupabaseAdmin();
+let query = db(admin)
+  .from('posts')
+  .select('id, title, slug, summary, reading_time, created_at, published')
+  .order('created_at', { ascending: false });
+
+// Public only sees published posts; admins see all
+if (!isAdmin) query = query.eq('published', true);
+
+const { data: posts, error } = await query;
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const featured = posts?.[0];
+const rest = posts?.slice(1) ?? [];
+---
+
+<BlogLayout title="Blog — Jiale Cheng" description="Thoughts on machine learning, data engineering, and AI in practice.">
+
+  <!-- Hero header -->
+  <div class="list-hero">
+    <p class="list-eyebrow fade-up">Writing</p>
+    <div class="hero-row fade-up delay-100">
+      <h1 class="list-title">Ideas &amp; Insights</h1>
+      {isAdmin && (
+        <a href="/admin/posts/new" class="btn-new-post">
+          + New post
+        </a>
+      )}
+    </div>
+    <p class="list-subtitle fade-up delay-200">
+      Machine learning, data engineering, and applied AI—from research to production.
+    </p>
+    {isAdmin && (
+      <p class="admin-hint fade-up delay-300">
+        Admin mode — drafts visible &nbsp;·&nbsp; <a href="/admin/posts">Manage all posts →</a>
+      </p>
+    )}
+  </div>
+
+  <!-- Error state -->
+  {error && (
+    <div class="error-box">
+      <div class="error-card">
+        <p class="error-title">Could not connect to Supabase</p>
+        <p class="error-msg">{error.message}</p>
+        <p class="error-hint">
+          Run <code>supabase/migrate-to-public.sql</code> in your Supabase SQL Editor
+          to set up the tables in the <code>public</code> schema.
+        </p>
+      </div>
+    </div>
+  )}
+
+  <!-- Empty state -->
+  {(!posts || posts.length === 0) && !error && (
+    <div class="empty-state">No articles published yet. Check back soon.</div>
+  )}
+
+  <!-- Posts -->
+  {posts && posts.length > 0 && (
+    <div class="posts-grid">
+
+      <!-- Featured (latest) post -->
+      {featured && (
+        <div
+          class={`post-featured${!featured.published ? ' post-draft' : ''}`}
+          onclick={`window.location.href='/blog/${featured.slug}'`}
+          style="cursor:pointer"
+        >
+          <div class="post-featured-badges">
+            <span class="post-tag">Latest</span>
+            {isAdmin && !featured.published && <span class="draft-tag">Draft</span>}
+          </div>
+          <h2>{featured.title || '(Untitled)'}</h2>
+          {featured.summary ? <p>{featured.summary}</p> : null}
+          <div class="post-meta">
+            <span>{formatDate(featured.created_at)}</span>
+            <span class="dot">·</span>
+            <span>{featured.reading_time} min read</span>
+            {isAdmin && (
+              <a
+                href={`/admin/posts/${featured.id}`}
+                class="edit-link"
+                onclick="event.stopPropagation()"
+              >
+                Edit
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <!-- Remaining posts grid -->
+      {rest.length > 0 && (
+        <div class="posts-list">
+          {rest.map((post) => (
+            <div
+              class={`post-card${!post.published ? ' post-draft' : ''}`}
+              onclick={`window.location.href='/blog/${post.slug}'`}
+              style="cursor:pointer"
+            >
+              {isAdmin && !post.published && <span class="draft-tag">Draft</span>}
+              <h2>{post.title || '(Untitled)'}</h2>
+              {post.summary ? <p>{post.summary}</p> : null}
+              <div class="post-meta">
+                <span>{formatDate(post.created_at)}</span>
+                <span class="dot">·</span>
+                <span>{post.reading_time} min read</span>
+                {isAdmin && (
+                  <a
+                    href={`/admin/posts/${post.id}`}
+                    class="edit-link"
+                    onclick="event.stopPropagation()"
+                  >
+                    Edit
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+    </div>
+  )}
+
+</BlogLayout>

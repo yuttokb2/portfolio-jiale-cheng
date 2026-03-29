@@ -1,0 +1,80 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+const admin = createSupabaseAdmin();
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+  const id = form.get('id') as string;
+
+  if (action === 'delete' && id) {
+    await db(admin).from('experience_jobs').delete().eq('id', id);
+  }
+  return Astro.redirect('/admin/experience');
+}
+
+const { data: jobs } = await db(admin)
+  .from('experience_jobs')
+  .select('*')
+  .order('lang')
+  .order('display_order');
+---
+
+<AdminLayout title="Experience" breadcrumb="experience">
+  <div class="page-header">
+    <h1 class="page-title">Experience</h1>
+    <a href="/admin/experience/new" class="btn-primary" style="text-decoration:none;">+ New job</a>
+  </div>
+
+  {jobs && jobs.length > 0 ? (
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title &amp; Company</th>
+            <th>Period</th>
+            <th>Lang</th>
+            <th>Order</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {jobs.map(job => (
+            <tr>
+              <td>
+                <div style="font-weight:600; color:#e2e8f0; font-size:0.85rem;">{job.title}</div>
+                <div style="font-size:0.72rem; color:#475569;">{job.company}</div>
+              </td>
+              <td style="font-size:0.78rem; color:#64748b; font-family:var(--font-mono);">
+                {job.date}
+                {job.is_current && <span style="margin-left:6px; font-size:0.62rem; color:#22d3ee;">● now</span>}
+              </td>
+              <td>
+                <span class="badge badge-published" style="font-size:0.62rem;">{job.lang?.toUpperCase()}</span>
+              </td>
+              <td style="font-family:var(--font-mono); font-size:0.78rem; color:#475569;">{job.display_order}</td>
+              <td style="text-align:right;">
+                <div style="display:flex; gap:8px; justify-content:flex-end;">
+                  <a href={`/admin/experience/${job.id}`} class="btn-secondary btn-sm" style="text-decoration:none;">Edit</a>
+                  <form method="POST" onsubmit="return confirm('Delete this job?')">
+                    <input type="hidden" name="_action" value="delete" />
+                    <input type="hidden" name="id" value={job.id} />
+                    <button type="submit" class="btn-danger btn-sm">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <div class="empty-state">
+      <div class="empty-state-icon">◈</div>
+      <p class="empty-state-text">No experience entries yet.</p>
+      <a href="/admin/experience/new" class="btn-primary" style="text-decoration:none;">Add first job</a>
+    </div>
+  )}
+</AdminLayout>

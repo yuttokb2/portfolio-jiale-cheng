@@ -1,0 +1,62 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../lib/supabase';
+
+const admin = createSupabaseAdmin();
+
+const [{ count: projectCount }, { count: postCount }, { count: publishedCount }] = await Promise.all([
+  db(admin).from('projects').select('*', { count: 'exact', head: true }),
+  db(admin).from('posts').select('*', { count: 'exact', head: true }),
+  db(admin).from('posts').select('*', { count: 'exact', head: true }).eq('published', true),
+]);
+
+const stats = [
+  { label: 'Projects', value: projectCount ?? 0, href: '/admin/projects', icon: '⬡' },
+  { label: 'Blog Posts', value: postCount ?? 0, href: '/admin/posts', icon: '◻' },
+  { label: 'Published', value: publishedCount ?? 0, href: '/admin/posts', icon: '◈' },
+];
+---
+
+<AdminLayout title="Dashboard">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px;">
+        portfolio admin — manage projects &amp; blog posts
+      </p>
+    </div>
+  </div>
+
+  <!-- Stats grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px;">
+    {stats.map(stat => (
+      <a href={stat.href} class="stat-card">
+        <span class="stat-card-icon">{stat.icon}</span>
+        <div class="stat-card-number">{stat.value}</div>
+        <div class="stat-card-label">{stat.label}</div>
+      </a>
+    ))}
+  </div>
+
+  <!-- Quick actions -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div style="font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+      Quick actions
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <a href="/admin/projects/new" class="btn-primary" style="text-decoration: none;">
+        + New project
+      </a>
+      <a href="/admin/posts/new" class="btn-secondary" style="text-decoration: none;">
+        + New post
+      </a>
+    </div>
+  </div>
+
+  <!-- Welcome hint -->
+  <div style="padding: 16px 20px; border-radius: var(--radius-sm); background: var(--accent-dim); border: 1px solid rgba(34, 211, 238, 0.1);">
+    <p style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); opacity: 0.8; line-height: 1.6;">
+      // Use the sidebar to navigate between sections. Changes are applied immediately after saving.
+    </p>
+  </div>
+</AdminLayout>

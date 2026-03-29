@@ -1,0 +1,137 @@
+---
+// If already logged in, redirect to admin
+import { createSupabaseClient } from '../../lib/supabase';
+
+const supabase = createSupabaseClient(Astro.request, Astro.cookies);
+const { data: { user } } = await supabase.auth.getUser();
+if (user) return Astro.redirect('/admin');
+
+const error = Astro.url.searchParams.get('error');
+const errorMessages: Record<string, string> = {
+  invalid_credentials: 'Invalid email or password.',
+  server_error: 'Server error. Please try again.',
+};
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #060608;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #cbd5e1;
+    }
+    .card {
+      width: 100%;
+      max-width: 380px;
+      background: #090910;
+      border: 1px solid #1e2035;
+      border-radius: 14px;
+      padding: 40px 36px;
+    }
+    .logo {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #22d3ee;
+      margin-bottom: 28px;
+      display: block;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      background: #0c0c18;
+      border: 1px solid #1e2035;
+      border-radius: 7px;
+      color: #e2e8f0;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      margin-bottom: 18px;
+      transition: border-color 0.15s;
+    }
+    input:focus { outline: none; border-color: #0891b2; }
+    button {
+      width: 100%;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 11px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+    button:hover { background: #06b6d4; }
+    .error {
+      background: #2d0a0a;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+      padding: 10px 14px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      margin-bottom: 18px;
+    }
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #334155;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+    }
+    .back:hover { color: #22d3ee; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="logo">JC.admin</span>
+    <h1>Sign in</h1>
+
+    {error && (
+      <div class="error">{errorMessages[error] ?? 'An error occurred.'}</div>
+    )}
+
+    <form action="/api/auth/login" method="POST">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autocomplete="email" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password" />
+
+      <button type="submit">Sign in →</button>
+    </form>
+
+    <a href="/en" class="back">← Back to portfolio</a>
+  </div>
+</body>
+</html>

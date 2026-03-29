@@ -1,0 +1,101 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db, estimateReadingTime, slugify } from '../../../lib/supabase';
+
+let formError: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const admin = createSupabaseAdmin();
+
+  const title = formData.get('title') as string;
+  const content = formData.get('content') as string;
+  const customSlug = (formData.get('slug') as string).trim();
+  const slug = customSlug || slugify(title);
+
+  const { error } = await db(admin).from('posts').insert({
+    title,
+    slug,
+    summary: formData.get('summary') as string,
+    content,
+    published: formData.get('published') === 'on',
+    reading_time: estimateReadingTime(content),
+  });
+
+  if (error) {
+    formError = error.message;
+  } else {
+    return Astro.redirect('/admin/posts');
+  }
+}
+---
+
+<AdminLayout title="New Post" breadcrumb="posts / new">
+  <div style="max-width: 780px;">
+    <div class="page-header">
+      <h1 class="page-title">New post</h1>
+      <a href="/admin/posts" class="btn-secondary" style="text-decoration: none;">← Back</a>
+    </div>
+
+    {formError && (
+      <div class="error-alert">{formError}</div>
+    )}
+
+    <form method="POST">
+      <!-- Core fields -->
+      <div class="form-section">
+        <div class="form-section-title">Post details</div>
+
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input type="text" id="title" name="title" required placeholder="Detecting Financial Fraud with Unsupervised ML" />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="slug">Slug</label>
+            <input type="text" id="slug" name="slug" placeholder="detecting-financial-fraud" style="font-family: var(--font-mono); font-size: 0.8rem;" />
+            <p class="helper-text">Auto-generated from title if left empty</p>
+          </div>
+          <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 20px;">
+            <label class="checkbox-label" style="margin: 0;">
+              <input type="checkbox" name="published" />
+              Publish immediately
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="summary">Summary / excerpt *</label>
+          <textarea id="summary" name="summary" required rows="2" placeholder="A brief description shown in the blog list..."></textarea>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="form-section">
+        <div class="form-section-title">Content</div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="content">Markdown *</label>
+          <textarea
+            id="content"
+            name="content"
+            required
+            rows="26"
+            placeholder="# Introduction&#10;&#10;Write your article in **Markdown** format.&#10;&#10;## Code example&#10;&#10;```python&#10;import pandas as pd&#10;```"
+            style="font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65;"
+          ></textarea>
+          <p class="helper-text">
+            Supports: headings, **bold**, *italic*, `code`, ```blocks```, &gt; blockquotes, - lists, ![images](url)
+          </p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="submit" class="btn-primary">Create post</button>
+        <a href="/admin/posts" class="btn-secondary" style="text-decoration: none;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

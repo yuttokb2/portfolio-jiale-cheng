@@ -1,0 +1,46 @@
+---
+import ProjectsGrid from './ProjectsGrid';
+
+interface ProjectCard {
+  title: string;
+  company: string;
+  period: string;
+  description: string;
+  impact: string[];
+  technologies: string[];
+  category: string;
+  icon: string;
+  demo_url?: string | null;
+  repo_url?: string | null;
+}
+
+interface Props {
+  title: string;
+  projects: ProjectCard[];
+}
+
+const { title, projects } = Astro.props;
+---
+
+<section class="relative py-20 px-4 max-w-7xl mx-auto" id="projects">
+
+  <!-- Section label -->
+  <p class="fade-up text-center font-mono text-xs tracking-widest uppercase text-cyan-500 mb-3">
+    Selected work
+  </p>
+
+  <!-- Main heading with gradient -->
+  <h2 class="fade-up text-3xl md:text-4xl font-bold mb-4 text-center">
+    <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-400">
+      {title}
+    </span>
+  </h2>
+
+  <!-- Subtitle -->
+  <p class="fade-up text-slate-500 text-center max-w-xl mx-auto mb-14 text-sm">
+    ML, data engineering, and strategic implementations at scale
+  </p>
+
+  <ProjectsGrid client:visible projects={projects} />
+
+</section>

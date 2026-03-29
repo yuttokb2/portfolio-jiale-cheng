@@ -1,0 +1,91 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+let formError: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const admin = createSupabaseAdmin();
+  const tags = (form.get('tags') as string).split(',').map(s => s.trim()).filter(Boolean);
+
+  const { error } = await db(admin).from('experience_jobs').insert({
+    date:          form.get('date') as string,
+    title:         form.get('title') as string,
+    company:       form.get('company') as string,
+    description:   form.get('description') as string,
+    tags,
+    is_current:    form.get('is_current') === 'on',
+    lang:          (form.get('lang') as string) || 'en',
+    display_order: parseInt(form.get('display_order') as string) || 0,
+  });
+
+  if (error) formError = error.message;
+  else return Astro.redirect('/admin/experience');
+}
+---
+
+<AdminLayout title="New Job" breadcrumb="experience / new">
+  <div style="max-width:680px;">
+    <div class="page-header">
+      <h1 class="page-title">New job</h1>
+      <a href="/admin/experience" class="btn-secondary" style="text-decoration:none;">← Back</a>
+    </div>
+
+    {formError && <div class="error-alert">{formError}</div>}
+
+    <form method="POST" class="form-section">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="title">Job title *</label>
+          <input type="text" id="title" name="title" required placeholder="Senior Data Scientist" />
+        </div>
+        <div class="form-group">
+          <label for="company">Company *</label>
+          <input type="text" id="company" name="company" required placeholder="CoverWallet (Aon)" />
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="date">Period *</label>
+          <input type="text" id="date" name="date" required placeholder="Sept 2023 - 2025" />
+        </div>
+        <div class="form-group">
+          <label for="lang">Language</label>
+          <select name="lang" id="lang">
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="display_order">Order</label>
+          <input type="number" name="display_order" id="display_order" value="0" min="0" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea id="description" name="description" rows="3" required
+          placeholder="What did you do, what was the impact..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tags">Tags / technologies (comma-separated)</label>
+        <input type="text" id="tags" name="tags" placeholder="Python, LLMs, MLFlow, LangChain" />
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_current" />
+          Currently working here (shows green "now" indicator)
+        </label>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button type="submit" class="btn-primary">Create job</button>
+        <a href="/admin/experience" class="btn-secondary" style="text-decoration:none;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

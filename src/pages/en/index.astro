@@ -1,0 +1,132 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Experience from '../../components/Experience.astro';
+import Skills from '../../components/Skills.astro';
+import Projects from '../../components/Projects.astro';
+import { en } from '../../i18n/en';
+import { createSupabaseClient, db } from '../../lib/supabase';
+
+const { hero: staticHero, experience: staticExperience, skills: staticSkills, projects: staticProjects } = en;
+
+let hero = staticHero;
+let skillGroups = staticSkills.groups;
+let jobList = staticExperience.jobs;
+let projectList: typeof staticProjects.list = staticProjects.list;
+
+try {
+  const supabase = createSupabaseClient(Astro.request, Astro.cookies);
+
+  const [profileRes, skillsRes, expRes, projRes] = await Promise.all([
+    db(supabase).from('profile').select('key,value').eq('lang', 'en'),
+    db(supabase).from('skill_groups').select('category,skills').eq('lang', 'en').order('display_order'),
+    db(supabase).from('experience_jobs').select('*').eq('lang', 'en').order('display_order'),
+    db(supabase).from('projects').select('*').order('display_order', { ascending: true }),
+  ]);
+
+  if (profileRes.data && profileRes.data.length > 0) {
+    const kv = Object.fromEntries(profileRes.data.map((r: any) => [r.key, r.value]));
+    hero = { ...staticHero, ...kv };
+  }
+
+  if (skillsRes.data && skillsRes.data.length > 0) {
+    skillGroups = skillsRes.data as any;
+  }
+
+  if (expRes.data && expRes.data.length > 0) {
+    jobList = expRes.data.map((j: any) => ({ ...j, current: j.is_current })) as any;
+  }
+
+  if (projRes.data && projRes.data.length > 0) {
+    projectList = projRes.data as any;
+  }
+} catch {
+  // Supabase not configured — use static data
+}
+---
+
+<Layout title="Jiale Cheng | Senior Data Scientist" lang="en">
+
+  <main class="relative w-full min-h-screen flex flex-col items-center justify-center pt-36 pb-20 px-4">
+
+    <!-- Available badge -->
+    <div class="fade-up mb-8 inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/[0.08] backdrop-blur-sm">
+      <span class="flex h-2 w-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
+      <span class="text-cyan-300 text-xs font-mono tracking-widest uppercase">Available for new projects</span>
+    </div>
+
+    <!-- Profile image -->
+    <div class="fade-up relative group mb-8">
+      <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-700 animate-pulse"></div>
+      <div class="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden ring-2 ring-slate-900/50 shadow-2xl">
+        <img
+          src="/images/profile.jpeg"
+          alt="Jiale Cheng"
+          class="w-full h-full object-cover object-[center_20%] grayscale hover:grayscale-0 transition-all duration-500"
+        />
+      </div>
+    </div>
+
+    <div class="z-10 text-center max-w-5xl mx-auto space-y-6">
+
+      <!-- Name -->
+      <h1 class="fade-up text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter">
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-100 to-cyan-500 animate-gradient-x">
+          Jiale Cheng
+        </span>
+      </h1>
+
+      <!-- Typewriter tagline -->
+      <div class="fade-up h-8 flex items-center justify-center">
+        <h2 class="typewriter-text text-cyan-400 tracking-[0.2em] text-xs md:text-sm font-mono uppercase">
+          {hero.tagline}
+        </h2>
+      </div>
+
+      <!-- Bio card -->
+      <div class="fade-up relative group max-w-3xl mx-auto">
+        <div class="absolute -inset-px bg-gradient-to-r from-cyan-600/40 to-purple-600/30 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition duration-700"></div>
+        <div class="relative bg-[#0a0a0a]/90 ring-1 ring-slate-800/60 rounded-xl p-7 text-left shadow-2xl">
+          <p class="text-slate-300 text-base md:text-lg leading-relaxed font-light" set:html={hero.bio_p1}></p>
+          <hr class="border-slate-800/80 my-5" />
+          <p class="text-slate-400 text-sm md:text-base leading-relaxed" set:html={hero.bio_p2}></p>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="fade-up flex flex-wrap gap-4 justify-center pt-4">
+        <a
+          href="https://www.linkedin.com/in/jiale-cheng-861375184"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="relative px-7 py-3.5 rounded-full bg-white text-black font-bold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] text-sm"
+        >
+          {hero.btn_linkedin}
+        </a>
+        <a
+          href="mailto:yuttokb2@gmail.com"
+          class="px-7 py-3.5 rounded-full border border-slate-700 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/60 transition-all bg-slate-900/40 hover:bg-cyan-950/20 text-sm"
+        >
+          {hero.btn_email}
+        </a>
+        <a
+          href="/blog/"
+          class="px-7 py-3.5 rounded-full border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-600 transition-all text-sm font-mono"
+        >
+          Blog →
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
+      <span class="text-xs font-mono text-slate-600 tracking-widest uppercase">scroll</span>
+      <div class="w-px h-8 bg-gradient-to-b from-slate-600 to-transparent animate-pulse"></div>
+    </div>
+  </main>
+
+  <Skills title={staticSkills.title} groups={skillGroups} />
+  <Projects title={staticProjects.title} projects={projectList} />
+  <Experience title={staticExperience.title} jobs={jobList} />
+
+</Layout>

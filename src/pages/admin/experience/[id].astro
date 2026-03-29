@@ -1,0 +1,96 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/experience');
+
+const admin = createSupabaseAdmin();
+let formError: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const tags = (form.get('tags') as string).split(',').map(s => s.trim()).filter(Boolean);
+
+  const { error } = await db(admin).from('experience_jobs').update({
+    date:          form.get('date') as string,
+    title:         form.get('title') as string,
+    company:       form.get('company') as string,
+    description:   form.get('description') as string,
+    tags,
+    is_current:    form.get('is_current') === 'on',
+    lang:          (form.get('lang') as string) || 'en',
+    display_order: parseInt(form.get('display_order') as string) || 0,
+  }).eq('id', id);
+
+  if (error) formError = error.message;
+  else return Astro.redirect('/admin/experience');
+}
+
+const { data: job } = await db(admin).from('experience_jobs').select('*').eq('id', id).single();
+if (!job) return Astro.redirect('/admin/experience');
+---
+
+<AdminLayout title="Edit Job" breadcrumb={`experience / ${job.title}`}>
+  <div style="max-width:680px;">
+    <div class="page-header">
+      <h1 class="page-title">Edit job</h1>
+      <a href="/admin/experience" class="btn-secondary" style="text-decoration:none;">← Back</a>
+    </div>
+
+    {formError && <div class="error-alert">{formError}</div>}
+
+    <form method="POST" class="form-section">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="title">Job title *</label>
+          <input type="text" id="title" name="title" required value={job.title} />
+        </div>
+        <div class="form-group">
+          <label for="company">Company *</label>
+          <input type="text" id="company" name="company" required value={job.company} />
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="date">Period *</label>
+          <input type="text" id="date" name="date" required value={job.date} />
+        </div>
+        <div class="form-group">
+          <label for="lang">Language</label>
+          <select name="lang" id="lang">
+            <option value="en" selected={job.lang === 'en'}>EN</option>
+            <option value="es" selected={job.lang === 'es'}>ES</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="display_order">Order</label>
+          <input type="number" name="display_order" id="display_order" value={job.display_order} min="0" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea id="description" name="description" rows="3" required>{job.description}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tags">Tags / technologies (comma-separated)</label>
+        <input type="text" id="tags" name="tags" value={job.tags?.join(', ')} />
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_current" checked={job.is_current} />
+          Currently working here (shows green "now" indicator)
+        </label>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button type="submit" class="btn-primary">Save changes</button>
+        <a href="/admin/experience" class="btn-secondary" style="text-decoration:none;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

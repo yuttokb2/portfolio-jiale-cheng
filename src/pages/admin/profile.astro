@@ -1,0 +1,120 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../lib/supabase';
+
+const admin = createSupabaseAdmin();
+let saveError: string | null = null;
+let saveOk = false;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const lang = form.get('lang') as string || 'en';
+
+  const fields = ['tagline', 'role', 'bio_p1', 'bio_p2'];
+  const upserts = fields.map(key => ({
+    key,
+    lang,
+    value: (form.get(key) as string) ?? '',
+  }));
+
+  const { error } = await db(admin)
+    .from('profile')
+    .upsert(upserts, { onConflict: 'key,lang' });
+
+  if (error) saveError = error.message;
+  else saveOk = true;
+}
+
+// Load current profile for both languages
+const { data: rows } = await db(admin)
+  .from('profile')
+  .select('*')
+  .order('lang');
+
+const byLangKey = (lang: string, key: string) =>
+  rows?.find(r => r.lang === lang && r.key === key)?.value ?? '';
+---
+
+<AdminLayout title="Profile / About" breadcrumb="profile">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Profile &amp; About</h1>
+      <p class="helper-text" style="margin-top: 4px;">Controls the hero bio, tagline and role shown on the portfolio.</p>
+    </div>
+  </div>
+
+  {saveError && <div class="error-alert">{saveError}</div>}
+  {saveOk && (
+    <div style="background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.2); color: #4ade80; padding: 10px 16px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 20px;">
+      Saved successfully.
+    </div>
+  )}
+
+  <!-- EN form -->
+  <form method="POST">
+    <input type="hidden" name="lang" value="en" />
+
+    <div class="form-section" style="max-width: 820px;">
+      <div class="form-section-title">🇬🇧 English content</div>
+
+      <div class="form-group">
+        <label for="tagline_en">Tagline (mono text under name)</label>
+        <input type="text" id="tagline_en" name="tagline" value={byLangKey('en','tagline')}
+          placeholder="Physicist | Machine Learning Engineer | GenAI Specialist" />
+      </div>
+
+      <div class="form-group">
+        <label for="role_en">Role (used in meta/og)</label>
+        <input type="text" id="role_en" name="role" value={byLangKey('en','role')}
+          placeholder="Senior Data Scientist & Physicist" />
+      </div>
+
+      <div class="form-group">
+        <label for="bio_p1_en">Bio — paragraph 1 (supports HTML tags)</label>
+        <textarea id="bio_p1_en" name="bio_p1" rows="4">{byLangKey('en','bio_p1')}</textarea>
+        <p class="helper-text">You can use &lt;span class='text-cyan-400'&gt;, &lt;strong&gt;, etc.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="bio_p2_en">Bio — paragraph 2 (supports HTML tags)</label>
+        <textarea id="bio_p2_en" name="bio_p2" rows="4">{byLangKey('en','bio_p2')}</textarea>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button type="submit" class="btn-primary">Save EN</button>
+        <a href="/en" target="_blank" class="btn-secondary" style="text-decoration:none;">↗ Preview site</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- ES form -->
+  <form method="POST" style="margin-top: 24px;">
+    <input type="hidden" name="lang" value="es" />
+
+    <div class="form-section" style="max-width: 820px;">
+      <div class="form-section-title">🇪🇸 Contenido en español</div>
+
+      <div class="form-group">
+        <label for="tagline_es">Tagline</label>
+        <input type="text" id="tagline_es" name="tagline" value={byLangKey('es','tagline')} />
+      </div>
+
+      <div class="form-group">
+        <label for="role_es">Role</label>
+        <input type="text" id="role_es" name="role" value={byLangKey('es','role')} />
+      </div>
+
+      <div class="form-group">
+        <label for="bio_p1_es">Bio — párrafo 1</label>
+        <textarea id="bio_p1_es" name="bio_p1" rows="4">{byLangKey('es','bio_p1')}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="bio_p2_es">Bio — párrafo 2</label>
+        <textarea id="bio_p2_es" name="bio_p2" rows="4">{byLangKey('es','bio_p2')}</textarea>
+      </div>
+
+      <button type="submit" class="btn-primary">Save ES</button>
+    </div>
+  </form>
+</AdminLayout>

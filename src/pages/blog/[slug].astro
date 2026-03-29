@@ -1,0 +1,92 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import { createSupabaseAdmin, createSupabaseClient, db } from '../../lib/supabase';
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import hljs from 'highlight.js';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/blog/');
+
+// Check if user is authenticated (to show edit controls)
+let isAdmin = false;
+let postId = '';
+try {
+  const supabase = createSupabaseClient(Astro.request, Astro.cookies);
+  const { data: { user } } = await supabase.auth.getUser();
+  isAdmin = !!user;
+} catch {}
+
+const admin = createSupabaseAdmin();
+let query = db(admin).from('posts').select('*').eq('slug', slug);
+// Admins can preview drafts; public only sees published
+if (!isAdmin) query = query.eq('published', true);
+const { data: post, error } = await query.single();
+
+if (error || !post) {
+  return new Response(null, { status: 404, statusText: 'Post not found' });
+}
+
+postId = post.id;
+
+const marked = new Marked(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    },
+  })
+);
+
+const html = await marked.parse(post.content);
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BlogLayout
+  title={post.title}
+  description={post.summary}
+  publishedAt={post.created_at}
+  readingTime={post.reading_time}
+>
+  <article class="article-container">
+
+    <header class="article-header">
+      {isAdmin && !post.published && (
+        <div class="draft-banner">
+          Draft — not visible to the public
+        </div>
+      )}
+
+      <div class="article-meta">
+        <span>{formatDate(post.created_at)}</span>
+        <span>·</span>
+        <span class="read-badge">{post.reading_time} min read</span>
+        {isAdmin && (
+          <a href={`/admin/posts/${postId}`} class="article-edit-link">
+            Edit post
+          </a>
+        )}
+      </div>
+
+      <h1 class="article-title">{post.title}</h1>
+
+      {post.summary && (
+        <p class="article-summary">{post.summary}</p>
+      )}
+    </header>
+
+    <div class="article-body" set:html={html} />
+
+    <div class="author-bio">
+      <div class="author-avatar">JC</div>
+      <div class="author-info">
+        <h4>Jiale Cheng</h4>
+        <p>Senior Data Scientist &amp; ML Engineer. Working at the intersection of machine learning, data engineering, and production AI systems.</p>
+      </div>
+    </div>
+
+  </article>
+</BlogLayout>

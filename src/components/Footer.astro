@@ -1,0 +1,33 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-slate-800/40 py-12 px-4 mt-16">
+  <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+
+    <p class="text-slate-600 text-xs font-mono">
+      © {year} Jiale Cheng — Built with
+      <span class="text-cyan-700">Astro</span> &
+      <span class="text-cyan-700">Supabase</span>
+    </p>
+
+    <nav class="flex items-center gap-6">
+      {[
+        { href: 'https://github.com/jiale-cheng', label: 'GitHub', external: true },
+        { href: 'https://www.linkedin.com/in/jiale-cheng-861375184', label: 'LinkedIn', external: true },
+        { href: 'mailto:yuttokb2@gmail.com', label: 'Email', external: false },
+        { href: '/blog/', label: 'Blog', external: false },
+      ].map(link => (
+        <a
+          href={link.href}
+          target={link.external ? '_blank' : undefined}
+          rel={link.external ? 'noopener noreferrer' : undefined}
+          class="text-slate-500 hover:text-cyan-400 transition-colors text-xs font-mono"
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+
+  </div>
+</footer>

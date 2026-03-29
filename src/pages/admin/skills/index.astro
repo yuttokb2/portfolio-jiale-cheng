@@ -1,0 +1,126 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+const admin = createSupabaseAdmin();
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action') as string;
+  const id = form.get('id') as string;
+  const lang = (form.get('lang') as string) || 'en';
+
+  if (action === 'delete' && id) {
+    await db(admin).from('skill_groups').delete().eq('id', id);
+  } else if (action === 'create' || action === 'update') {
+    const skills = (form.get('skills') as string)
+      .split(',').map(s => s.trim()).filter(Boolean);
+    const payload = {
+      category: form.get('category') as string,
+      skills,
+      lang,
+      display_order: parseInt(form.get('display_order') as string) || 0,
+    };
+    if (action === 'create') {
+      await db(admin).from('skill_groups').insert(payload);
+    } else {
+      await db(admin).from('skill_groups').update(payload).eq('id', id);
+    }
+  }
+  return Astro.redirect('/admin/skills');
+}
+
+const { data: groups } = await db(admin)
+  .from('skill_groups')
+  .select('*')
+  .order('lang')
+  .order('display_order');
+---
+
+<AdminLayout title="Skills" breadcrumb="skills">
+  <div class="page-header">
+    <h1 class="page-title">Skills</h1>
+  </div>
+
+  <!-- Skills table -->
+  {groups && groups.length > 0 ? (
+    <div class="table-wrap" style="margin-bottom: 36px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Lang</th>
+            <th>Order</th>
+            <th>Skills</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map(g => (
+            <tr>
+              <td style="font-weight:600; color:#e2e8f0; font-size:0.85rem;">{g.category}</td>
+              <td>
+                <span class="badge badge-published" style="font-size:0.62rem;">{g.lang.toUpperCase()}</span>
+              </td>
+              <td style="font-family:var(--font-mono); font-size:0.78rem; color:#475569;">{g.display_order}</td>
+              <td style="font-size:0.75rem; color:#475569; max-width:340px;">
+                {g.skills?.join(', ')}
+              </td>
+              <td style="text-align:right;">
+                <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                  <a href={`/admin/skills/${g.id}`} class="btn-secondary btn-sm" style="text-decoration:none;">Edit</a>
+                  <form method="POST" onsubmit="return confirm('Delete this skill group?')">
+                    <input type="hidden" name="_action" value="delete" />
+                    <input type="hidden" name="id" value={g.id} />
+                    <button type="submit" class="btn-danger btn-sm">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <div class="empty-state" style="margin-bottom:36px;">
+      <div class="empty-state-icon">⬡</div>
+      <p class="empty-state-text">No skill groups yet.</p>
+    </div>
+  )}
+
+  <!-- Add new group form -->
+  <div class="form-section" style="max-width:680px;">
+    <div class="form-section-title">Add skill group</div>
+    <form method="POST">
+      <input type="hidden" name="_action" value="create" />
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <input type="text" id="category" name="category" required placeholder="Machine Learning & GenAI" />
+        </div>
+        <div class="form-row-2" style="gap:12px;">
+          <div class="form-group">
+            <label for="lang">Language</label>
+            <select name="lang" id="lang">
+              <option value="en">EN</option>
+              <option value="es">ES</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="display_order">Order</label>
+            <input type="number" name="display_order" id="display_order" value="0" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="skills">Skills (comma-separated) *</label>
+        <textarea id="skills" name="skills" rows="3" required
+          placeholder="Python, Pandas, NumPy, Scikit-learn, TensorFlow"></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary">Add group</button>
+    </form>
+  </div>
+</AdminLayout>

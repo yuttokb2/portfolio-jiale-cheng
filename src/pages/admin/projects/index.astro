@@ -1,0 +1,85 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+const admin = createSupabaseAdmin();
+
+// Handle POST (delete action)
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const action = formData.get('_action') as string;
+  const id = formData.get('id') as string;
+  if (action === 'delete' && id) {
+    await db(admin).from('projects').delete().eq('id', id);
+  }
+  return Astro.redirect('/admin/projects');
+}
+
+const { data: projects, error } = await db(admin)
+  .from('projects')
+  .select('*')
+  .order('display_order', { ascending: true });
+---
+
+<AdminLayout title="Projects" breadcrumb="projects">
+  <div class="page-header">
+    <h1 class="page-title">Projects</h1>
+    <a href="/admin/projects/new" class="btn-primary" style="text-decoration: none;">+ New project</a>
+  </div>
+
+  {error && (
+    <div class="error-alert">Error loading projects: {error.message}</div>
+  )}
+
+  {(!projects || projects.length === 0) && (
+    <div class="empty-state">
+      <div class="empty-state-icon">⬡</div>
+      <p class="empty-state-text">No projects yet. Add your first project to the portfolio.</p>
+      <a href="/admin/projects/new" class="btn-primary" style="text-decoration: none;">Add first project</a>
+    </div>
+  )}
+
+  {projects && projects.length > 0 && (
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Company</th>
+            <th>Order</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-size: 1.25rem; line-height: 1; flex-shrink: 0;">{project.icon}</span>
+                  <div>
+                    <div style="font-size: 0.855rem; font-weight: 600; color: var(--text-strong); margin-bottom: 3px;">{project.title}</div>
+                    <div style="font-size: 0.68rem; color: var(--text-muted); font-family: var(--font-mono);">{project.category}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-size: 0.82rem; color: var(--text); white-space: nowrap;">{project.company}</td>
+              <td style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{project.display_order}</td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                  <a href={`/admin/projects/${project.id}`} class="btn-secondary btn-sm" style="text-decoration: none;">
+                    Edit
+                  </a>
+                  <form method="POST" onsubmit="return confirm('Delete this project?')" style="display: contents;">
+                    <input type="hidden" name="_action" value="delete" />
+                    <input type="hidden" name="id" value={project.id} />
+                    <button type="submit" class="btn-danger">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</AdminLayout>

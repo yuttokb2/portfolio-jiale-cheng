@@ -1,0 +1,140 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createSupabaseAdmin, db } from '../../../lib/supabase';
+
+let formError: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const admin = createSupabaseAdmin();
+
+  const impact = (formData.get('impact') as string)
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+  const technologies = (formData.get('technologies') as string)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const { error } = await db(admin).from('projects').insert({
+    title: formData.get('title') as string,
+    company: formData.get('company') as string,
+    period: formData.get('period') as string,
+    description: formData.get('description') as string,
+    impact,
+    technologies,
+    category: formData.get('category') as string,
+    icon: (formData.get('icon') as string) || '🚀',
+    demo_url: (formData.get('demo_url') as string) || null,
+    repo_url: (formData.get('repo_url') as string) || null,
+    preview_image: (formData.get('preview_image') as string) || null,
+    display_order: parseInt(formData.get('display_order') as string) || 0,
+  });
+
+  if (error) {
+    formError = error.message;
+  } else {
+    return Astro.redirect('/admin/projects');
+  }
+}
+---
+
+<AdminLayout title="New Project" breadcrumb="projects / new">
+  <div style="max-width: 680px;">
+    <div class="page-header">
+      <h1 class="page-title">New project</h1>
+      <a href="/admin/projects" class="btn-secondary" style="text-decoration: none;">← Back</a>
+    </div>
+
+    {formError && (
+      <div class="error-alert">{formError}</div>
+    )}
+
+    <form method="POST">
+      <!-- Basic info -->
+      <div class="form-section">
+        <div class="form-section-title">Basic info</div>
+
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input type="text" id="title" name="title" required placeholder="AML Detection Platform" />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="company">Company *</label>
+            <input type="text" id="company" name="company" required placeholder="ThetaRay × Santander" />
+          </div>
+          <div class="form-group">
+            <label for="period">Period *</label>
+            <input type="text" id="period" name="period" required placeholder="2023–2025" style="font-family: var(--font-mono); font-size: 0.82rem;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="description">Description *</label>
+          <textarea id="description" name="description" required rows="3" placeholder="Brief description of the project and your role..."></textarea>
+        </div>
+      </div>
+
+      <!-- Impact & tech -->
+      <div class="form-section">
+        <div class="form-section-title">Impact &amp; technologies</div>
+
+        <div class="form-group">
+          <label for="impact">Impact (one per line)</label>
+          <textarea id="impact" name="impact" rows="3" placeholder="Improved detection rates by double-digit %&#10;Reduced processing time by 40%"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="technologies">Technologies *</label>
+          <input type="text" id="technologies" name="technologies" required placeholder="Python, PySpark, Airflow, MLflow" />
+          <p class="helper-text">Separate with commas</p>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="form-section">
+        <div class="form-section-title">Categorisation</div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <input type="text" id="category" name="category" required placeholder="Machine Learning" />
+          </div>
+          <div class="form-group">
+            <label for="icon">Icon (emoji)</label>
+            <input type="text" id="icon" name="icon" placeholder="🚀" maxlength="4" style="font-size: 1.1rem;" />
+          </div>
+          <div class="form-group">
+            <label for="display_order">Display order</label>
+            <input type="number" id="display_order" name="display_order" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="demo_url">Demo URL</label>
+            <input type="url" id="demo_url" name="demo_url" placeholder="https://demo.example.com" />
+          </div>
+          <div class="form-group">
+            <label for="repo_url">Repository URL</label>
+            <input type="url" id="repo_url" name="repo_url" placeholder="https://github.com/..." />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="preview_image">Preview image URL</label>
+          <input type="url" id="preview_image" name="preview_image" placeholder="https://..." />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="submit" class="btn-primary">Create project</button>
+        <a href="/admin/projects" class="btn-secondary" style="text-decoration: none;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

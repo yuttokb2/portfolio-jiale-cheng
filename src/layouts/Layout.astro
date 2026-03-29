@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  lang?: 'en' | 'es';
+}
+
+const { title, lang = 'en' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Portfolio of Jiale Cheng — Senior Data Scientist & ML Engineer" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <style is:global>
+      .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+      }
+      .fade-up.in-view {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .delay-100 { transition-delay: 100ms; }
+      .delay-200 { transition-delay: 200ms; }
+      .delay-300 { transition-delay: 300ms; }
+    </style>
+  </head>
+
+  <body class="bg-[#0d1117] text-white font-sans overflow-x-hidden selection:bg-cyan-500/30">
+
+    <!-- Fixed background layers -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none">
+      <!-- Subtle grid -->
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+      <!-- Mouse spotlight -->
+      <div id="spotlight" class="absolute inset-0 bg-[radial-gradient(700px_circle_at_var(--x,_50%)_var(--y,_50%),rgba(56,139,253,0.10),transparent_50%)]"></div>
+      <!-- Ambient orbs — more visible now -->
+      <div class="absolute left-[-5%] top-0 h-[500px] w-[500px] rounded-full bg-cyan-500 opacity-[0.07] blur-[120px]"></div>
+      <div class="absolute right-[-5%] top-[10%] h-[400px] w-[400px] rounded-full bg-purple-600 opacity-[0.08] blur-[100px]"></div>
+      <div class="absolute left-[40%] top-[60%] h-[300px] w-[300px] rounded-full bg-blue-600 opacity-[0.06] blur-[90px]"></div>
+    </div>
+
+    <Nav lang={lang} />
+
+    <slot />
+
+    <Footer />
+
+    <script>
+      const spotlight = document.getElementById('spotlight');
+      window.addEventListener('mousemove', (e) => {
+        spotlight?.style.setProperty('--x', `${e.clientX}px`);
+        spotlight?.style.setProperty('--y', `${e.clientY}px`);
+      }, { passive: true });
+    </script>
+
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+      });
+    </script>
+  </body>
+</html>
