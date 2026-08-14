@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "supabase-portfolio": {
+      "command": "./scripts/mcp/supabase.sh"
+    }
+  }
+}
